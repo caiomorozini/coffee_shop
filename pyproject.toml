@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "coffee-shop"
+version = "0.1.0"
+description = ""
+authors = ["caiomorozini <caiomorozini@outlook.com.br>"]
+readme = "README.md"
+packages = [{include = "coffee_shop"}]
+
+[tool.poetry.dependencies]
+python = "3.11"
+fastapi = "^0.103.1"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+python-multipart = "^0.0.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
