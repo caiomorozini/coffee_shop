@@ -1,5 +1,7 @@
 ﻿from fastapi import FastAPI
 from endpoints import route
+from schemas import Tags
+from database import database
 
 app = FastAPI(
     summary="API de exemplo",
@@ -7,12 +9,12 @@ app = FastAPI(
     description="Descrição da API de exemplo",
 )
 
-app.include_router(route, prefix="/v1", tags=["v1"])
+app.include_router(route, prefix="/api/v1/items", tags=[Tags.items])
 
 @app.on_event("startup")
 async def startup_event():
-    print("Iniciando a API")
+   await database.connect()
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    print("Finalizando a API")
+    await database.disconnect()

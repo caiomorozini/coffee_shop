@@ -8,14 +8,15 @@ from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, Red
 from pydantic import BaseModel, confloat, constr, Field, HttpUrl
 from typing import Union, List, Annotated
 from enum import Enum
-from schemas import Coffee, Imagem, Tags, ResponseCoffee
-from database import dados
+from schemas import Coffee, Tags, ResponseCoffee
 
+
+dados = []
 
 route = APIRouter()
 
-@route.post("/coffees/")
-async def create_coffee(
+@route.post("/")
+async def create_item(
     coffee: Coffee = Body(
         ...,
         **Coffee.model_config,
@@ -55,7 +56,9 @@ async def create_coffee(
         }
     )) -> ResponseCoffee:
 
-    dados.append(coffee.model_dump())
+    insert_coffee = coffee.model_dump()
+    insert_coffee["id"] = len(dados) + 1
+    dados.append(insert_coffee)
 
     return ResponseCoffee(
         id=len(dados),
@@ -64,10 +67,10 @@ async def create_coffee(
 
 
 @route.get(
-    "/items/",
+    "/coffee/",
     tags=[Tags.items, Tags.users],
-    summary="Mostra os items",
-    response_description="A lista de items",
+    summary="Mostra os cafés registrados",
+    response_description="A lista de cafés registrados",
     response_model=List[ResponseCoffee],
 )
 async def mostrar_items(
@@ -95,7 +98,7 @@ async def mostrar_items(
         **dado
     ) for dado in dados[:limit]]
 
-@route.get("/items/{item_id}", tags=["items", "produtos", "cafe"])
+@route.get("/items/{item_id}")
 async def mostrar_item(
     item_id: int = Path(title="The ID of the item to get"),
     user_agent: str = Header(None, convert_underscores=True),
@@ -103,38 +106,3 @@ async def mostrar_item(
     if item_id > len(dados):
         raise HTTPException(status_code=404, detail="Produto não existe")
     return dados[item_id - 1]
-
-@route.get("/portal", status_code=status.HTTP_201_CREATED)
-async def get_portal(teleport: bool = False) -> RedirectResponse:
-    return RedirectResponse(url="https://www.youtube.com/")
-
-@route.post("/login/")
-async def login(username: str = Form(), password: str = Form()):
-    return {"username": username}
-
-
-@route.post("/files/")
-async def create_file(file: Annotated[bytes, File()]):
-    return {"file_size": len(file)}
-
-
-@route.post("/uploadfile/")
-async def create_upload_file(file: list[UploadFile]):
-    return {"filename": file.filename}
-
-
-@route.get("/")
-async def main():
-    content = """
-<body>
-<form action="/files/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-</body>
-    """
-    return HTMLResponse(content=content)
