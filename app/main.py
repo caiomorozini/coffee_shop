@@ -1,7 +1,7 @@
 ﻿from fastapi import FastAPI
-from endpoints import route
-from schemas import Tags
-from database import database
+from app.routers.batches import route
+from app.schemas.core import Tags
+from app.database.database import database
 
 app = FastAPI(
     summary="API de exemplo",
@@ -9,7 +9,7 @@ app = FastAPI(
     description="Descrição da API de exemplo",
 )
 
-app.include_router(route, prefix="/api/v1/items", tags=[Tags.items])
+app.include_router(route, prefix="/api/v1/batch", tags=[Tags.items])
 
 @app.on_event("startup")
 async def startup_event():
