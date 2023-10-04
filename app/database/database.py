@@ -8,17 +8,19 @@ database = databases.Database(DATABASE_URL)
 
 metadata = sqlalchemy.MetaData()
 
-batches = sqlalchemy.Table(
-    "batches",
+ingredients = sqlalchemy.Table(
+    "ingredients",
     metadata,
     sqlalchemy.Column(
         "id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column(
-        "purchase", sqlalchemy.DateTime),
+        "name", sqlalchemy.String(50)),
     sqlalchemy.Column(
-        "manufacturing", sqlalchemy.DateTime),
+        "quantity", sqlalchemy.Integer),
     sqlalchemy.Column(
-        "expiration", sqlalchemy.DateTime),
+        "observations",
+        sqlalchemy.String(500)
+    ),
     sqlalchemy.Column(
         "created_at",
         sqlalchemy.TIMESTAMP(timezone=True),
@@ -32,24 +34,70 @@ batches = sqlalchemy.Table(
     ),
 )
 
-ingredients = sqlalchemy.Table(
-    "ingredients",
+input_table = sqlalchemy.Table(
+    "input",
     metadata,
     sqlalchemy.Column(
         "id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column(
-        "name", sqlalchemy.String(50)),
+        "id_ingredient", sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("ingredients.id")),
     sqlalchemy.Column(
         "quantity", sqlalchemy.Integer),
     sqlalchemy.Column(
-        "batch_id",
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("batches.id")
+        "unit_price", sqlalchemy.Float),
+    sqlalchemy.Column(
+        "date", sqlalchemy.DateTime),
+    sqlalchemy.Column(
+        "created_at",
+        sqlalchemy.TIMESTAMP(timezone=True),
+        server_default=sqlalchemy.func.now(),
     ),
     sqlalchemy.Column(
-        "observations",
-        sqlalchemy.String(500)
+        "updated_at",
+        sqlalchemy.TIMESTAMP(timezone=True),
+        server_default=sqlalchemy.func.now(),
+        onupdate=sqlalchemy.func.now(),
     ),
+)
+
+output_table = sqlalchemy.Table(
+    "output",
+    metadata,
+    sqlalchemy.Column(
+        "id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column(
+        "id_ingredient", sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("ingredients.id")),
+    sqlalchemy.Column(
+        "quantity", sqlalchemy.Integer),
+    sqlalchemy.Column(
+        "date", sqlalchemy.DateTime),
+    sqlalchemy.Column(
+        "created_at",
+        sqlalchemy.TIMESTAMP(timezone=True),
+        server_default=sqlalchemy.func.now(),
+    ),
+    sqlalchemy.Column(
+        "updated_at",
+        sqlalchemy.TIMESTAMP(timezone=True),
+        server_default=sqlalchemy.func.now(),
+        onupdate=sqlalchemy.func.now(),
+    ),
+)
+
+batches = sqlalchemy.Table(
+    "batches",
+    metadata,
+    sqlalchemy.Column(
+        "id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column(
+        "ingredient", sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("ingredients.id")),
+    sqlalchemy.Column(
+        "quantity", sqlalchemy.Integer),
+    sqlalchemy.Column(
+        "expiration", sqlalchemy.DateTime),
     sqlalchemy.Column(
         "created_at",
         sqlalchemy.TIMESTAMP(timezone=True),
