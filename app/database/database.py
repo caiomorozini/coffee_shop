@@ -16,8 +16,6 @@ ingredients = sqlalchemy.Table(
     sqlalchemy.Column(
         "name", sqlalchemy.String(50)),
     sqlalchemy.Column(
-        "quantity", sqlalchemy.Integer),
-    sqlalchemy.Column(
         "observations",
         sqlalchemy.String(500)
     ),
