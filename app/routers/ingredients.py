@@ -7,35 +7,33 @@ from app.schemas.ingredient import Ingredient, IngredientResponse
 from app.database.database import database, ingredients
 
 
-
 ingredients_router = APIRouter(prefix="/ingredients")
+
 
 @ingredients_router.post("/")
 async def create_ingredient(
-    ingredient: Ingredient = Body(
-        ...,
-        **Ingredient.model_config,
-        openapi_examples={
-            "normal": {
-                "summary": "Um exemplo normal",
-                "description": "Um exemplo normal",
-                "value": {
-                    "name": "tomate",
-                    "quantity": 1,
-                    "observations": "comprado no mercado",
-                }
-            },
-            "invalid": {
-                "summary": "Um exemplo inválido",
-                "description": "Um exemplo inválido",
-                "value": {
-                    "name": "tomate",
-                    "quantity": 0,
-                    "observations": "comprado no mercado",
+        ingredient: Ingredient = Body(
+            ...,
+            **Ingredient.model_config,
+            openapi_examples={
+                "normal": {
+                    "summary": "Um exemplo normal",
+                    "description": "Um exemplo normal",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    }
                 },
-            },
-        }
-    )) -> IngredientResponse:
+                "invalid": {
+                    "summary": "Um exemplo inválido",
+                    "description": "Um exemplo inválido",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    },
+                },
+            }
+        )) -> IngredientResponse:
 
     # Checando se ingredient já existe
     query = ingredients.select().where(
@@ -50,7 +48,8 @@ async def create_ingredient(
         )
 
     # Cria comando SQL para inserir o lote e executa
-    query = ingredients.insert().values(**ingredient.model_dump())
+    query = ingredients.insert().values(
+        **ingredient.model_dump(exclude_unset=True))
     last_record_id = await database.execute(query)
 
     return IngredientResponse(
@@ -71,7 +70,7 @@ async def mostrar_items(
         title="Query string",
         description="Query string para filtrar os items",
         alias="abc",
-        ),
+    ),
     limit: int = Query(default=10, ge=1, le=50),
     recent: bool = False
 ):
@@ -91,3 +90,46 @@ async def mostrar_items(
             ingredients.c.created_at.desc()).limit(limit)
 
     return await database.fetch_all(query)
+
+
+@ingredients_router.put("/{ingredient_id}")
+async def update_ingredient(
+        ingredient_id: int = Path(..., title="ID do ingrediente"),
+        ingredient: Ingredient = Body(
+            ...,
+            **Ingredient.model_config,
+            openapi_examples={
+                "normal": {
+                    "summary": "Um exemplo normal",
+                    "description": "Um exemplo normal",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    }
+                },
+                "invalid": {
+                    "summary": "Um exemplo inválido",
+                    "description": "Um exemplo inválido",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    },
+                },
+            }
+        )) -> IngredientResponse:
+    ingredient_exists = await database.fetch_one(
+        ingredients.select().where(ingredients.c.id == ingredient_id)
+    )
+    if not ingredient_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ingrediente não existe",
+        )
+    updated_id = await database.execute(
+        ingredients.update().where(ingredients.c.id == ingredient_id).values(
+            **ingredient.model_dump(exclude_unset=True))
+    )
+
+    return IngredientResponse(
+        id=updated_id, **ingredient.model_dump()
+    )
