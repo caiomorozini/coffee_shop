@@ -125,17 +125,17 @@ async def update_ingredient(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ingrediente não existe",
         )
-    updated_id = await database.execute(
+    await database.execute(
         ingredients.update().where(ingredients.c.id == ingredient_id).values(
             **ingredient.model_dump(exclude_unset=True))
     )
 
     return IngredientResponse(
-        id=updated_id, **ingredient.model_dump()
+        id=ingredient_id, **ingredient.model_dump()
     )
 
 @ingredients_router.delete("/{ingredient_id}")
-async def update_ingredient(
+async def delete_ingredient(
         ingredient_id: int = Path(..., title="ID do ingrediente"),
         ingredient: Ingredient = Body(
             ...,

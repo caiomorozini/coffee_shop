@@ -8,21 +8,26 @@ from unidecode import unidecode
 
 class InputIngredient(BaseModel):
     """ Modelo de ingrediente """
-    name: constr(
-        max_length=50,
-        strip_whitespace=True,
-        to_lower=True,
-        min_length=1,
-        ) = Field(..., example="tomate")
+    id_ingredient: int
     quantity: int = Field(0, example=5)
     unit_price: float = Field(example=2.98)
     date: datetime = Field(exemple="15/12/2023")
 
-    @validator("name")
-    def apply_unidecode(cls, v):
-        """ Aplica unidecode no nome """
-        return re.sub(r'[^\w\s]', '', unidecode(v))
+    @validator("date", pre=True)
+    def format_date(cls, v):
+        """ Formata a data para datetime """
 
+        if isinstance(v, str):
+            try:
+                v = datetime.strptime(v, "%d/%m/%Y")
+            except ValueError:
+                try:
+                    v = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S")
+                except ValueError as value_error:
+                    raise ValueError(
+                        f"Data {v} não está no formato dd/mm/yyyy") \
+                        from value_error
+        return v
 class InputIngredientResponse(InputIngredient):
     """ Modelo de resposta de ingrediente """
-    id: int
+    input_id: int

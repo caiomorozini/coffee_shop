@@ -14,12 +14,12 @@ app = FastAPI(
     description="Descrição da API de exemplo",
 )
 
-app.include_router(orders_router, prefix="/api/v1",)
-app.include_router(products_router, prefix="/api/v1",)
-app.include_router(output_ingredients_router, prefix="/api/v1", tags=[Tags.items])
-app.include_router(input_ingredients_router, prefix="/api/v1", tags=[Tags.items])
-app.include_router(ingredients_router, prefix="/api/v1", tags=[Tags.items])
-app.include_router(route, prefix="/api/v1", tags=[Tags.items])
+app.include_router(orders_router, prefix="/api/v1", tags=["orders"])
+app.include_router(products_router, prefix="/api/v1", tags=["products"])
+app.include_router(output_ingredients_router, prefix="/api/v1", tags=["output_ingredients"])
+app.include_router(input_ingredients_router, prefix="/api/v1", tags=["input_ingredients"])
+app.include_router(ingredients_router, prefix="/api/v1", tags=["ingredients"])
+app.include_router(route, prefix="/api/v1", tags=["batches"])
 
 
 @app.on_event("startup")

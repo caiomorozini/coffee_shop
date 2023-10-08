@@ -5,7 +5,7 @@ from fastapi import (
 from typing import Union, List, Annotated
 from app.schemas.input_ingredients import InputIngredient, InputIngredientResponse
 from app.database.database import database, input_table
-
+from icecream import ic
 
 input_ingredients_router = APIRouter(prefix="/input-ingredients")
 
@@ -15,28 +15,6 @@ async def create(
         ingredient: InputIngredient = Body(
             ...,
             **InputIngredient.model_config,
-            openapi_examples={
-                "normal": {
-                    "summary": "Um exemplo normal",
-                    "description": "Um exemplo normal",
-                    "value": {
-                        "name": "farinha de trigo",
-                        "quantity": 1,
-                        "unit_price": 3.86,
-                        "date": "09/10/2023"
-                    }
-                },
-                "invalid": {
-                    "summary": "Um exemplo inválido",
-                    "description": "Um exemplo inválido",
-                    "value": {
-                        "name": "maracuja",
-                        "quantity": "abc",
-                        "unit_price": 1.0,
-                        "date": "02/08/2023"
-                    }
-                },
-            }
         )) -> InputIngredientResponse:
 
     # Cria comando SQL para inserir o lote e executa
@@ -77,75 +55,51 @@ async def mostrar_items(
 
     return await database.fetch_all(query)
 
-@input_ingredients_router.put("/{ingredient_id}")
-async def update_ingredient(
-        id: int = Path(..., title="ID do ingrediente"),
+@input_ingredients_router.put("/{input_id}")
+async def update_input(
+        input_id: int = Path(..., title="ID da entrada"),
         ingredient: InputIngredient = Body(
             ...,
             **InputIngredient.model_config
         )) -> InputIngredientResponse:
     ingredient_exists = await database.fetch_one(
-        input_table.select().where(input_table.c.id == id)
+        input_table.select().where(input_table.c.id == input_id)
     )
     if not ingredient_exists:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ingrediente não existe",
         )
-    updated_id = await database.execute(
-        input_table.update().where(input_table.c.id == id).values(
+    await database.execute(
+        input_table.update().where(input_table.c.id == input_id).values(
             **ingredient.model_dump(exclude_unset=True))
     )
 
     return InputIngredientResponse(
-        id=updated_id, **ingredient.model_dump()
+        input_id=input_id, **ingredient.model_dump()
     )
 
-@input_ingredients_router.delete("/{id}")
-async def update_ingredient(
-        id: int = Path(..., title="ID do ingrediente"),
-        ingredient: InputIngredient = Body(
-            ...,
-            **InputIngredient.model_config,
-            openapi_examples={
-                "normal": {
-                    "summary": "Um exemplo normal",
-                    "description": "Um exemplo normal",
-                    "value": {
-                        "name": "tomate",
-                        "quantity": 4,
-                        "unit_price": 0.6,
-                        "date": "08/10/2023",
-                    }
-                },
-                "invalid": {
-                    "summary": "Um exemplo inválido",
-                    "description": "Um exemplo inválido",
-                    "value": {
-                        "name": "tomate",
-                        "quantity": "quatro",
-                        "unit_price": 0.6,
-                        "date": "08/10/2023",
-                    }
-                },
-            }
-        )) -> InputIngredientResponse:
+@input_ingredients_router.delete(
+    "/{input_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    )
+async def delete_input(
+        input_id: int = Path(..., title="ID do ingrediente"),
+        ):
 
     ingredient_exists = await database.fetch_one(
         input_table.select().where(
-            input_table.c.id == id)
+            input_table.c.id == input_id)
     )
     if not ingredient_exists:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ingrediente não existe",
         )
-    deleted_id = await database.execute(
+
+    await database.execute(
         input_table.delete().where(
-            input_table.c.id == id).values(
-                **ingredient.model_dump(exclude_unset=True))
+            input_table.c.id == input_id)
     )
 
-    return InputIngredientResponse(
-        id=deleted_id, **ingredient.model_dump()
-    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
