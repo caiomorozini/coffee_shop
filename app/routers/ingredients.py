@@ -133,3 +133,48 @@ async def update_ingredient(
     return IngredientResponse(
         id=updated_id, **ingredient.model_dump()
     )
+
+@ingredients_router.delete("/{ingredient_id}")
+async def update_ingredient(
+        ingredient_id: int = Path(..., title="ID do ingrediente"),
+        ingredient: Ingredient = Body(
+            ...,
+            **Ingredient.model_config,
+            openapi_examples={
+                "normal": {
+                    "summary": "Um exemplo normal",
+                    "description": "Um exemplo normal",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    }
+                },
+                "invalid": {
+                    "summary": "Um exemplo inválido",
+                    "description": "Um exemplo inválido",
+                    "value": {
+                        "name": "tomate",
+                        "observations": "comprado no mercado",
+                    },
+                },
+            }
+        )) -> IngredientResponse:
+    ingredient_exists = await database.fetch_one(
+        ingredients.select().where(ingredients.c.id == ingredient_id)
+    )
+    if not ingredient_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ingrediente não existe",
+        )
+    deleted_id = await database.execute(
+        ingredients.delete().where(ingredients.c.id == ingredient_id
+            ).values(**ingredient.model_dump(exclude_unset=True))
+    )
+
+    return IngredientResponse(
+        id=deleted_id, **ingredient.model_dump()
+    )
+
+
+

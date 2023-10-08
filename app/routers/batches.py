@@ -22,27 +22,24 @@ async def create_item(
                 "summary": "Um exemplo normal",
                 "description": "Um exemplo normal",
                 "value": {
-                    "purchase": "01/01/2021",
-                    "expiration": "01/01/2022",
-                    "manufacturing": "01/01/2021",
+                    "quantity": 10,
+                    "expiration": "01/01/2024",
                 }
             },
             "invalid": {
                 "summary": "Um exemplo inválido",
                 "description": "Um exemplo inválido",
                 "value": {
-                    "purchase": "01/01/2021",
+                    "quantity": 10,
                     "expiration": "01/01/2020",
-                    "manufacturing": "01/01/2021",
                 },
             },
             "isoformat": {
                 "summary": "Um exemplo inválido",
                 "description": "Um exemplo inválido",
                 "value": {
-                    "purchase": "2021-01-01T00:00:00",
+                    "quantity": 10,
                     "expiration": "2020-01-01T00:00:00",
-                    "manufacturing": "2021-01-01T00:00:00",
                 },
             },
         }
