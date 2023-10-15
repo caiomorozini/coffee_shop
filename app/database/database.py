@@ -1,6 +1,7 @@
 ﻿import sqlalchemy
 from sqlalchemy.dialects.postgresql import JSON
 import databases
+from sqlalchemy.orm import relationship
 
 DATABASE_URL = "postgresql://usuario:senha@localhost:5432/coffeeshop_dev"
 
@@ -140,17 +141,28 @@ products = sqlalchemy.Table(
     ),
 )
 
+order_products = sqlalchemy.Table(
+    "order_products",
+    metadata,
+    sqlalchemy.Column(
+        "order_id", sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("orders.id")),
+    sqlalchemy.Column(
+        "product_id", sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("products.id"))
+)
+
 orders = sqlalchemy.Table(
     "orders",
     metadata,
     sqlalchemy.Column(
         "id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column(
-        "products", sqlalchemy.ARRAY(
+        "products",
+        sqlalchemy.ARRAY(
             sqlalchemy.Integer,
-            sqlalchemy.ForeignKey("products.id")
-        )
-    ),
+            sqlalchemy.ForeignKey("products.id")),
+        ),
     sqlalchemy.Column(
         "price",
         sqlalchemy.Float,
@@ -169,8 +181,30 @@ orders = sqlalchemy.Table(
         sqlalchemy.TIMESTAMP(timezone=True),
         server_default=sqlalchemy.func.now(),
         onupdate=sqlalchemy.func.now(),
-    ),
+    )
 )
+
+# Crie índices para a tabela 'ingredients'
+sqlalchemy.Index('idx_ingredients_name', ingredients.c.name)
+
+# Crie índices para a tabela 'input'
+sqlalchemy.Index('idx_input_id_ingredient', input_table.c.id_ingredient)
+sqlalchemy.Index('idx_input_date', input_table.c.date)
+
+# Crie índices para a tabela 'output'
+sqlalchemy.Index('idx_output_id_ingredient', output_table.c.id_ingredient)
+sqlalchemy.Index('idx_output_date', output_table.c.date)
+
+# Crie índices para a tabela 'batches'
+sqlalchemy.Index('idx_batches_ingredient', batches.c.ingredient)
+sqlalchemy.Index('idx_batches_expiration', batches.c.expiration)
+
+# Crie índices para a tabela 'products'
+sqlalchemy.Index('idx_products_name', products.c.name)
+sqlalchemy.Index('idx_products_ingredients', products.c.ingredients)
+
+# Crie índices para a tabela 'orders'
+sqlalchemy.Index('idx_orders_products', orders.c.products)
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
 
