@@ -5,10 +5,8 @@ from fastapi import (
 from typing import Union, List, Annotated
 from app.schemas.input_ingredients import InputIngredient, InputIngredientResponse
 from app.database.database import database, input_table
-from icecream import ic
 
 input_ingredients_router = APIRouter(prefix="/input-ingredients")
-
 
 @input_ingredients_router.post("/")
 async def create(
@@ -55,6 +53,38 @@ async def mostrar_items(
 
     return await database.fetch_all(query)
 
+@input_ingredients_router.get(
+    "/{ingredient_id}",
+    summary="Mostra um único ingrediente pelo ID",
+    response_description="Detalhes do ingrediente",
+    response_model=InputIngredientResponse,
+)
+async def mostrar_item(
+    ingredient_id: int = Path(..., title="ID da entrada"),
+) -> InputIngredientResponse:
+    """
+    Mostra os detalhes de um ingrediente.
+    Returns:
+        Detalhes do ingrediente.
+    """
+    # Consultar o banco de dados para obter o ingrediente com base no ID
+    ingredient_exists = await database.fetch_one(
+        input_table.select().where(
+        input_table.c.id == ingredient_id)
+    )
+
+# Se o ingrediente não for encontrado, levanta uma exceção HTTP 404 Not Found
+    if not ingredient_exists:
+        raise HTTPException(
+            status_code=404,
+            detail="Ingrediente não encontrado",
+        )
+
+    query = input_table.select().where(
+            input_table.c.id == ingredient_id)
+
+    return await database.fetch_one(query)
+
 @input_ingredients_router.put("/{input_id}")
 async def update_input(
         input_id: int = Path(..., title="ID da entrada"),
@@ -76,7 +106,7 @@ async def update_input(
     )
 
     return InputIngredientResponse(
-        input_id=input_id, **ingredient.model_dump()
+        id=input_id, **ingredient.model_dump()
     )
 
 @input_ingredients_router.delete(
@@ -85,8 +115,7 @@ async def update_input(
     )
 async def delete_input(
         input_id: int = Path(..., title="ID do ingrediente"),
-        ):
-
+):
     ingredient_exists = await database.fetch_one(
         input_table.select().where(
             input_table.c.id == input_id)

@@ -30,4 +30,4 @@ class InputIngredient(BaseModel):
         return v
 class InputIngredientResponse(InputIngredient):
     """ Modelo de resposta de ingrediente """
-    input_id: int
+    id: int

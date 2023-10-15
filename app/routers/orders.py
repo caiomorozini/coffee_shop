@@ -21,7 +21,6 @@ async def create_order(
                     "description": "Um exemplo normal",
                     "value": {
                         "products": [1],
-                        "price": 10.0,
                         "observations": "Não colocar canela no capuccino",
                     }
                 },
@@ -30,7 +29,6 @@ async def create_order(
                     "description": "Um exemplo inválido",
                     "value": {
                         "products": 1,
-                        "price": 10.0,
                         "observations": "Não colocar canela no capuccino",
                     }
                 },
@@ -56,7 +54,6 @@ async def create_order(
         id=last_record_id, **order.model_dump()
     )
 
-
 @orders_router.get(
     "/",
     # tags=[Tags.items, Tags.users],
@@ -64,7 +61,7 @@ async def create_order(
     response_description="A lista de pedidos registrados",
     response_model=List[OrderResponse],
 )
-async def mostrar_items(
+async def mostrar_pedidos(
     query: list = Query(
         default_factory=list,
         title="Query string",
@@ -91,6 +88,36 @@ async def mostrar_items(
 
     return await database.fetch_all(query)
 
+@orders_router.get(
+    "/{order_id}",
+    summary="Mostra um único pedido pelo ID",
+    response_description="Detalhes do pedido",
+    response_model=OrderResponse,
+)
+async def mostrar_pedido(
+    order_id: int = Path(..., title="ID da entrada"),
+) -> OrderResponse:
+    """
+    Mostra os detalhes de um ingrediente.
+    Returns:
+        Detalhes do ingrediente.
+    """
+    # Consultar o banco de dados para obter o ingrediente com base no ID
+    order_exists = await database.fetch_one(
+        orders.select().where(
+        orders.c.id == order_id)
+    )
+
+    # Se o ingrediente não for encontrado, levanta uma exceção HTTP 404 Not Found
+    if not order_exists:
+        raise HTTPException(
+            status_code=404,
+            detail="Ingrediente não encontrado",
+        )
+    query = orders.select().where(
+        orders.c.id == order_id)
+
+    return await database.fetch_one(query)
 
 @orders_router.put("/{order_id}")
 async def update_order(
@@ -125,40 +152,19 @@ async def update_order(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Pedido não existe",
         )
-    updated_id = await database.execute(
+    await database.execute(
         orders.update().where(orders.c.id == order_id).values(
             **order.model_dump(exclude_unset=True))
     )
 
     return OrderResponse(
-        id=updated_id, **order.model_dump()
+        id=order_id, **order.model_dump()
     )
 
 @orders_router.delete("/{order_id}")
 async def delete_order(
         order_id: int = Path(..., title="ID do ingrediente"),
-        order: Order = Body(
-            ...,
-            **Order.model_config,
-            openapi_examples={
-                "normal": {
-                    "summary": "Um exemplo normal",
-                    "description": "Um exemplo normal",
-                    "value": {
-                        "products": [1],
-                        "observations": "Não colocar canela no capuccino",
-                    }
-                },
-                "invalid": {
-                    "summary": "Um exemplo inválido",
-                    "description": "Um exemplo inválido",
-                    "value": {
-                        "products": 1,
-                        "observations": "Não colocar canela no capuccino",
-                    }
-                },
-            }
-        )) -> OrderResponse:
+):
     order_exists = await database.fetch_one(
         orders.select().where(orders.c.id == order_id)
     )
@@ -167,14 +173,10 @@ async def delete_order(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Pedido não existe",
         )
-    deleted_id = await database.execute(
-        orders.delete().where(orders.c.id == order_id
-            ).values(**order.model_dump(exclude_unset=True))
+    await database.execute(
+        orders.delete().where(
+            orders.c.id == order_id)
     )
 
-    return OrderResponse(
-        id=deleted_id, **order.model_dump()
-    )
-
-
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 

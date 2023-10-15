@@ -93,8 +93,39 @@ async def mostrar_items(
 
     return await database.fetch_all(query)
 
+@products_router.get(
+    "/{product_id}",
+    summary="Mostra um único produto pelo ID",
+    response_description="Detalhes do produto",
+    response_model=ProductResponse,
+)
+async def mostrar_item(
+    product_id: int = Path(..., title="ID da entrada"),
+) -> ProductResponse:
+    """
+    Mostra os detalhes de um ingrediente.
+    Returns:
+        Detalhes do ingrediente.
+    """
+    # Consultar o banco de dados para obter o ingrediente com base no ID
+    product_exists = await database.fetch_one(
+        products.select().where(
+        products.c.id == product_id)
+    )
 
-@products_router.put("/{ingredient_id}")
+    # Se o ingrediente não for encontrado, levanta uma exceção HTTP 404 Not Found
+    if not product_exists:
+        raise HTTPException(
+            status_code=404,
+            detail="Produto não encontrado",
+        )
+
+    query = products.select().where(
+        products.c.id == product_id)
+
+    return await database.fetch_one(query)
+
+@products_router.put("/{product_id}")
 async def update_ingredient(
         product_id: int = Path(..., title="ID do produto"),
         product: Product = Body(
@@ -129,42 +160,19 @@ async def update_ingredient(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product não existe",
         )
-    updated_id = await database.execute(
+    await database.execute(
         products.update().where(products.c.id == product_id).values(
             **product.model_dump(exclude_unset=True))
     )
 
     return ProductResponse(
-        id=updated_id, **product.model_dump()
+        id=product_id, **product.model_dump()
     )
 
-@products_router.delete("/{ingredient_id}")
+@products_router.delete("/{product_id}")
 async def update_product(
         product_id: int = Path(..., title="ID do produto"),
-        product: Product = Body(
-            ...,
-            **Product.model_config,
-            openapi_examples={
-                "normal": {
-                    "summary": "Um exemplo normal",
-                    "description": "Um exemplo normal",
-                    "value": {
-                        "name": "café com leite",
-                        "price": 10.9,
-                        "descript": "Com o café passado, acrescentar 100ml de leite",
-                    }
-                },
-                "invalid": {
-                    "summary": "Um exemplo inválido",
-                    "description": "Um exemplo inválido",
-                    "value": {
-                        "name": "café com leite",
-                        "price": "dez e noventa",
-                        "descript": "Com o café passado, acrescentar 100ml de leite",
-                    }
-                },
-            }
-        )) -> ProductResponse:
+):
     product_exists = await database.fetch_one(
         products.select().where(products.c.id == product_id)
     )
@@ -173,14 +181,11 @@ async def update_product(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Produto não existe",
         )
-    deleted_id = await database.execute(
-        products.delete().where(products.c.id == product_id
-            ).values(**product.model_dump(exclude_unset=True))
+    await database.execute(
+        products.delete().where(
+            products.c.id == product_id)
     )
 
-    return ProductResponse(
-        id=deleted_id, **product.model_dump()
-    )
-
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
