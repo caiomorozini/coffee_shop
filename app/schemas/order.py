@@ -8,7 +8,7 @@ from unidecode import unidecode
 
 class Order(BaseModel):
     """ Modelo de ingrediente """
-    products: List[Optional[int]] # Lista com ids na tabela de produtos
+    products: List[Optional[int]]
     observations: Optional[constr(
         max_length=500,
         strip_whitespace=True,

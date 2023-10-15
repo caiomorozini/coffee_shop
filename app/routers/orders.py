@@ -5,7 +5,7 @@ from fastapi import (
 from typing import Union, List, Annotated
 from app.schemas.order import Order, OrderResponse
 from app.database.database import database, orders, products
-
+import logging
 
 orders_router = APIRouter(prefix="/orders")
 
@@ -33,26 +33,41 @@ async def create_order(
                     }
                 },
             }
-        )) -> OrderResponse:
-    for id_product in order.products:
-        product_exists = await database.fetch_one(
-            products.select().where(products.c.id == id_product)
-        )
-        if not product_exists:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Produto {id_product} não existe",
-            )
-        continue
+        )):
 
-    # Cria comando SQL para inserir o lote e executa
-    query = orders.insert().values(
-        **order.model_dump(exclude_unset=True))
-    last_record_id = await database.execute(query)
+    # Verifica se os produtos existem
+    products_found = await database.fetch_all(
+        products.select().where(
+            products.c.id.in_(order.products)
+            )
+        )
+    ids_found = {p.id: p for p in products_found}
+
+    # Verificando se algum dos items passados não existe
+    if set(order.products) != ids_found.keys():
+        logging.error(
+            "Os seguintes produtos não existem no banco de dados: %s ",
+            [p for p in order.products if not p in ids_found.keys()]
+        )
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+
+
+    #calculando preço total do pedido
+    total_price = sum([ids_found[p].price for p in order.products])
+
+    # Inserindo o pedido no banco de dados
+    order_id = await database.execute(
+        orders.insert().values(
+            price=total_price,
+            **order.model_dump(exclude_unset=True)
+        )
+    )
 
     return OrderResponse(
-        id=last_record_id, **order.model_dump()
+        id=order_id, price=total_price, **order.model_dump()
     )
+
+
 
 @orders_router.get(
     "/",
