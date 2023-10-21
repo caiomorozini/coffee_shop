@@ -4,7 +4,7 @@ from fastapi import (
 )
 from typing import Union, List, Annotated
 from app.schemas.order import Order, OrderResponse
-from app.database.database import database, orders, products
+from app.database.database import database, orders, products, order_products
 import logging
 
 orders_router = APIRouter(prefix="/orders")
@@ -63,11 +63,17 @@ async def create_order(
         )
     )
 
+    for product_id in set(order.products):
+        await database.execute(
+            order_products.insert().values(
+                order_id=order_id,
+                product_id=product_id
+            )
+        )
+
     return OrderResponse(
         id=order_id, price=total_price, **order.model_dump()
     )
-
-
 
 @orders_router.get(
     "/",
@@ -135,46 +141,9 @@ async def mostrar_pedido(
     return await database.fetch_one(query)
 
 @orders_router.put("/{order_id}")
-async def update_order(
-        order_id: int = Path(..., title="ID do pedido"),
-        order: Order = Body(
-            ...,
-            **Order.model_config,
-            openapi_examples={
-                "normal": {
-                    "summary": "Um exemplo normal",
-                    "description": "Um exemplo normal",
-                    "value": {
-                        "products": [1],
-                        "observations": "Não colocar canela no capuccino",
-                    }
-                },
-                "invalid": {
-                    "summary": "Um exemplo inválido",
-                    "description": "Um exemplo inválido",
-                    "value": {
-                        "products": 1,
-                        "observations": "Não colocar canela no capuccino",
-                    }
-                },
-            }
-        )) -> OrderResponse:
-    order_exists = await database.fetch_one(
-        orders.select().where(orders.c.id == order_id)
-    )
-    if not order_exists:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pedido não existe",
-        )
-    await database.execute(
-        orders.update().where(orders.c.id == order_id).values(
-            **order.model_dump(exclude_unset=True))
-    )
-
-    return OrderResponse(
-        id=order_id, **order.model_dump()
-    )
+async def update_order() -> OrderResponse:
+    # TODO: Implementar a atualização do pedido
+    pass
 
 @orders_router.delete("/{order_id}")
 async def delete_order(
@@ -194,4 +163,3 @@ async def delete_order(
     )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-

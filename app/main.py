@@ -21,6 +21,9 @@ app.include_router(input_ingredients_router, prefix="/api/v1", tags=["input_ingr
 app.include_router(ingredients_router, prefix="/api/v1", tags=["ingredients"])
 app.include_router(route, prefix="/api/v1", tags=["batches"])
 
+@app.get("/")
+async def read_main():
+    return {"msg": "Hello World"}
 
 @app.on_event("startup")
 async def startup_event():

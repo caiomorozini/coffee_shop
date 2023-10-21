@@ -1,211 +1,210 @@
-﻿import sqlalchemy
+﻿import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSON
 import databases
-from sqlalchemy.orm import relationship
 
 DATABASE_URL = "postgresql://usuario:senha@localhost:5432/coffeeshop_dev"
 
 database = databases.Database(DATABASE_URL)
 
-metadata = sqlalchemy.MetaData()
+metadata = sa.MetaData()
 
-ingredients = sqlalchemy.Table(
+ingredients = sa.Table(
     "ingredients",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "name", sqlalchemy.String(50)),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
+        "name", sa.String(50)),
+    sa.Column(
         "observations",
-        sqlalchemy.String(500)
+        sa.String(500)
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     ),
 )
 
-input_table = sqlalchemy.Table(
+input_table = sa.Table(
     "input",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "id_ingredient", sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("ingredients.id")),
-    sqlalchemy.Column(
-        "quantity", sqlalchemy.Integer),
-    sqlalchemy.Column(
-        "unit_price", sqlalchemy.Float),
-    sqlalchemy.Column(
-        "date", sqlalchemy.DateTime),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
+        "id_ingredient", sa.Integer,
+        sa.ForeignKey("ingredients.id")),
+    sa.Column(
+        "quantity", sa.Integer),
+    sa.Column(
+        "unit_price", sa.Float),
+    sa.Column(
+        "date", sa.DateTime),
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     ),
 )
 
-output_table = sqlalchemy.Table(
+output_table = sa.Table(
     "output",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "id_ingredient", sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("ingredients.id")),
-    sqlalchemy.Column(
-        "quantity", sqlalchemy.Integer),
-    sqlalchemy.Column(
-        "date", sqlalchemy.DateTime),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
+        "id_ingredient", sa.Integer,
+        sa.ForeignKey("ingredients.id")),
+    sa.Column(
+        "quantity", sa.Integer),
+    sa.Column(
+        "date", sa.DateTime),
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     ),
 )
 
-batches = sqlalchemy.Table(
+batches = sa.Table(
     "batches",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "ingredient", sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("ingredients.id")),
-    sqlalchemy.Column(
-        "quantity", sqlalchemy.Integer),
-    sqlalchemy.Column(
-        "expiration", sqlalchemy.DateTime),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
+        "ingredient", sa.Integer,
+        sa.ForeignKey("ingredients.id")),
+    sa.Column(
+        "quantity", sa.Integer),
+    sa.Column(
+        "expiration", sa.DateTime),
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     ),
 )
 
-products = sqlalchemy.Table(
+products = sa.Table(
     "products",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "name", sqlalchemy.String(50)),
-    sqlalchemy.Column(
-        "price", sqlalchemy.Float),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
+        "name", sa.String(50)),
+    sa.Column(
+        "price", sa.Float),
+    sa.Column(
         "ingredients",
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("ingredients.id")
+        sa.Integer,
+        sa.ForeignKey("ingredients.id")
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "descript",
-        sqlalchemy.String(500)
+        sa.String(500)
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     ),
 )
 
-order_products = sqlalchemy.Table(
+order_products = sa.Table(
     "order_products",
     metadata,
-    sqlalchemy.Column(
-        "order_id", sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("orders.id")),
-    sqlalchemy.Column(
-        "product_id", sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("products.id"))
+    sa.Column(
+        "order_id", sa.Integer,
+        sa.ForeignKey("orders.id")),
+    sa.Column(
+        "product_id", sa.Integer,
+        sa.ForeignKey("products.id"))
 )
 
-orders = sqlalchemy.Table(
+orders = sa.Table(
     "orders",
     metadata,
-    sqlalchemy.Column(
-        "id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
+    sa.Column(
+        "id", sa.Integer, primary_key=True),
+    sa.Column(
         "products",
-        sqlalchemy.ARRAY(
-            sqlalchemy.Integer,
-            sqlalchemy.ForeignKey("products.id")),
+        sa.ARRAY(
+            sa.Integer,
+            sa.ForeignKey("products.id")),
         ),
-    sqlalchemy.Column(
+    sa.Column(
         "price",
-        sqlalchemy.Float,
+        sa.Float,
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "observations",
-        sqlalchemy.String(500)
+        sa.String(500)
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "created_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
     ),
-    sqlalchemy.Column(
+    sa.Column(
         "updated_at",
-        sqlalchemy.TIMESTAMP(timezone=True),
-        server_default=sqlalchemy.func.now(),
-        onupdate=sqlalchemy.func.now(),
+        sa.TIMESTAMP(timezone=True),
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
     )
 )
 
 # Crie índices para a tabela 'ingredients'
-sqlalchemy.Index('idx_ingredients_name', ingredients.c.name)
+sa.Index('idx_ingredients_name', ingredients.c.name)
 
 # Crie índices para a tabela 'input'
-sqlalchemy.Index('idx_input_id_ingredient', input_table.c.id_ingredient)
-sqlalchemy.Index('idx_input_date', input_table.c.date)
+sa.Index('idx_input_id_ingredient', input_table.c.id_ingredient)
+sa.Index('idx_input_date', input_table.c.date)
 
 # Crie índices para a tabela 'output'
-sqlalchemy.Index('idx_output_id_ingredient', output_table.c.id_ingredient)
-sqlalchemy.Index('idx_output_date', output_table.c.date)
+sa.Index('idx_output_id_ingredient', output_table.c.id_ingredient)
+sa.Index('idx_output_date', output_table.c.date)
 
 # Crie índices para a tabela 'batches'
-sqlalchemy.Index('idx_batches_ingredient', batches.c.ingredient)
-sqlalchemy.Index('idx_batches_expiration', batches.c.expiration)
+sa.Index('idx_batches_ingredient', batches.c.ingredient)
+sa.Index('idx_batches_expiration', batches.c.expiration)
 
 # Crie índices para a tabela 'products'
-sqlalchemy.Index('idx_products_name', products.c.name)
-sqlalchemy.Index('idx_products_ingredients', products.c.ingredients)
+sa.Index('idx_products_name', products.c.name)
+sa.Index('idx_products_ingredients', products.c.ingredients)
 
 # Crie índices para a tabela 'orders'
-sqlalchemy.Index('idx_orders_products', orders.c.products)
+sa.Index('idx_orders_products', orders.c.products)
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
+engine = sa.create_engine(DATABASE_URL)
 
 metadata.create_all(engine)
